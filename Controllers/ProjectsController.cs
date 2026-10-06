@@ -1,18 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
 using COMP2139_ICE.Models;
-using System.Collections.Generic;
+using COMP2139_ICE.Data;
+using System.Linq;
 
 namespace COMP2139_ICE.Controllers
 {
     public class ProjectsController : Controller
     {
-        // Lista estática para simular banco de dados neste Lab
-        private static List<Project> _projects = new List<Project>();
+        private readonly ApplicationDbContext _context;
+
+        // Injeção de Dependência do Contexto da Base de Dados
+        public ProjectsController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         // GET: /Projects/
         public IActionResult Index()
         {
-            return View(_projects);
+            var projects = _context.Projects.ToList();
+            return View(projects);
         }
 
         // GET: /Projects/Create
@@ -28,8 +35,8 @@ namespace COMP2139_ICE.Controllers
         {
             if (ModelState.IsValid)
             {
-                project.ProjectId = _projects.Count + 1;
-                _projects.Add(project);
+                _context.Projects.Add(project);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
@@ -40,7 +47,7 @@ namespace COMP2139_ICE.Controllers
         {
             if (id == null) return NotFound();
             
-            var project = _projects.Find(p => p.ProjectId == id);
+            var project = _context.Projects.FirstOrDefault(p => p.ProjectId == id);
             if (project == null) return NotFound();
 
             return View(project);
