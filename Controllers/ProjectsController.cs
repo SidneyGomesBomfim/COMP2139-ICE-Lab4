@@ -9,26 +9,30 @@ namespace COMP2139_ICE.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // Injeção de Dependência do Contexto da Base de Dados
         public ProjectsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: /Projects/
         public IActionResult Index()
         {
             var projects = _context.Projects.ToList();
             return View(projects);
         }
 
-        // GET: /Projects/Create
+        public IActionResult Details(int? id)
+        {
+            if (id == null) return NotFound();
+            var project = _context.Projects.FirstOrDefault(p => p.ProjectId == id);
+            if (project == null) return NotFound();
+            return View(project);
+        }
+
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: /Projects/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Project project)
@@ -42,15 +46,47 @@ namespace COMP2139_ICE.Controllers
             return View(project);
         }
 
-        // GET: /Projects/Details/5
-        public IActionResult Details(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null) return NotFound();
-            
             var project = _context.Projects.FirstOrDefault(p => p.ProjectId == id);
             if (project == null) return NotFound();
-
             return View(project);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Project project)
+        {
+            if (id != project.ProjectId) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                _context.Projects.Update(project);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(project);
+        }
+
+        public IActionResult Delete(int? id)
+        {
+            if (id == null) return NotFound();
+            var project = _context.Projects.FirstOrDefault(p => p.ProjectId == id);
+            if (project == null) return NotFound();
+            return View(project);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var project = _context.Projects.Find(id);
+            if (project == null) return NotFound();
+
+            _context.Projects.Remove(project);
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
     }
 }
